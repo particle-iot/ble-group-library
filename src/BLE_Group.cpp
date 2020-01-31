@@ -83,6 +83,17 @@ void BLE_Group::receive(const char *data, size_t len)
     }
 }
 
+void BLE_Group::onConnect(ConnectionEvent handler, void* context)
+{
+    _onConnectHandler = handler;
+    _onConnectContext = context;
+}
+void BLE_Group::onDisconnect(ConnectionEvent handler, void* context)
+{
+    _onDisconnectHandler = handler;
+    _onDisconnectContext = context;
+}
+
 int BLE_Group::scan()
 {
     Log.warn("Scan should be called as a Central");

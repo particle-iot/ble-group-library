@@ -11,6 +11,10 @@ static void onPeriphConnected(const BlePeerDevice& peer, void* context)
     BLE_Group_Peripheral *ctx = (BLE_Group_Peripheral *)context;
     ctx->connected = true;
     Log.info("Connected to Central");
+    if (ctx->_onConnectHandler != NULL)
+    {
+        ctx->_onConnectHandler(peer, ctx->_onConnectContext);
+    }
     BLE.stopAdvertising();
 }
 static void onPeriphDisconnected(const BlePeerDevice& peer, void* context)
@@ -18,6 +22,10 @@ static void onPeriphDisconnected(const BlePeerDevice& peer, void* context)
     BLE_Group_Peripheral *ctx = (BLE_Group_Peripheral *)context;
     ctx->connected = false;
     Log.info("Disconnected from Central");
+    if (ctx->_onDisconnectHandler != NULL)
+    {
+        ctx->_onDisconnectHandler(peer, ctx->_onDisconnectContext);
+    }
     BLE.advertise();
 }
 

@@ -16,6 +16,10 @@ static void onDisconnected(const BlePeerDevice &peer, void *context)
             ctx->peripherals[idx].in_use = false;
         }
     }
+    if (ctx->_onDisconnectHandler != NULL)
+    {
+        ctx->_onDisconnectHandler(peer, ctx->_onDisconnectContext);
+    }
 }
 
 static void onDataReceived(const uint8_t *data, size_t len, const BlePeerDevice& peer, void* context)
@@ -77,6 +81,10 @@ int BLE_Group_Central::scan()
                                 if (peripherals[hh].peer.connected())
                                 {
                                     Log.info("successfully connected!");
+                                    if (_onConnectHandler != NULL)
+                                    {
+                                        _onConnectHandler(peripherals[hh].peer, _onConnectContext);
+                                    }
                                     connected = true;
                                     peripherals[hh].in_use = true;
                                     peripherals[hh].peer.getCharacteristicByUUID(peripherals[hh]._txCharacteristic, txUuid);

@@ -1,6 +1,6 @@
 /*
- * Project ble-group-heart-beat-example
- * Description: Create local BLE communication among multiple devices and monitor long term connectivity
+ * Project ble-group-diagnostics
+ * Description: Several diagnostic tools for a local BLE Group
  * Author: Mariano Goluboff
  * Date: January 24th, 2020
  * 
@@ -27,6 +27,7 @@ struct bleConfig {
 };
 
 bool dev_configured;
+bool keep_scanning = true;
 
 unsigned long heartbeat_time, scan_time;
 
@@ -48,9 +49,57 @@ int setAsCentral(String extra)
   return 0;
 }
 
-void kickFunc(const char *event, const char *data)
+/*
+ * throughputTest is a function exposed to the Particle Cloud to publish
+ * packets over the local BLE Group as fast as possible, to test the
+ * throughput to other devices
+ * 
+ * To start a test, call the ThroughputTest cloud function. The parameter
+ * passed is the packet size that will be sent. 100 packets are sent.
+ */
+int throughputTest(String extra)
 {
-  Particle.publish("kick-received", data, PRIVATE);
+  if (!dev_configured) return -1;
+  keep_scanning = false;
+  size_t packet_size = std::atoi(extra);
+  char packet[packet_size];
+  memset(packet, 'A', packet_size-1);
+  packet[packet_size-1] = '\0';
+  group->publish("tx-start", "");
+  for (size_t idx=0;idx<100;idx++)
+  {
+    group->publish("tx", packet);
+  }
+  group->publish("tx-end", "");
+  keep_scanning = true;
+  return 0;
+}
+
+/*
+ * throughputFunc is the callback function to be used to subscribe
+ * to the "tx" event, which is used for the throughput testing.
+ * 
+ * Once all the packets are received, it publishes to the Particle 
+ * Cloud the results of the test (total bytes and kbps)
+ */
+unsigned long throughtput_timer;
+uint32_t data_received;
+void throughputFunc(const char *event, const char *data)
+{
+  if(strcmp(event, "tx-start") == 0)
+  {
+    throughtput_timer = millis();
+    data_received = 0;
+  } else if (strcmp(event,"tx") == 0)
+  {
+    data_received += strlen(data)+1;
+  } else if (strcmp(event,"tx-end") == 0)
+  {
+    unsigned long total_time = millis() - throughtput_timer;
+    char buf[100];
+    snprintf(buf, sizeof(buf), "Bytes: %lu, Time: %lu, kbps: %lu", data_received, total_time, ( (data_received*8/1024)/(total_time/1000) ));
+    Particle.publish("throughput", buf, PRIVATE);
+  }
 }
 
 /*
@@ -66,11 +115,11 @@ void onDisconnect(const BlePeerDevice& peer, void* context)
   Particle.publish("Disconnected", peer.address().toString(), PRIVATE);
 }
 
-
 // setup() runs once, when the device is first turned on.
 void setup() {
   Particle.function("SetPeripheral", setAsPeripheral);
   Particle.function("SetCentral", setAsCentral);
+  Particle.function("ThroughputTest", throughputTest);
   bleConfig myConfig;
   EEPROM.get(eeprom_address, myConfig);
   if (myConfig.is_central == 0xFF)
@@ -89,7 +138,7 @@ void setup() {
   }
   if (dev_configured)
   {
-    group->subscribe("kick", kickFunc);
+    group->subscribe("tx", throughputFunc);
     group->onConnect(onConnect, NULL);
     group->onDisconnect(onDisconnect, NULL);
   }
@@ -108,15 +157,10 @@ void loop() {
   {
     // Scan for more devices to build the group if we're the Central device
     // and we haven't hit the maximum number of devices yet.
-    if (group->devices_connected() < BLE_GROUP_MAX_PERIPHERALS && (millis() - scan_time) > 3000)
+    if (keep_scanning && group->devices_connected() < BLE_GROUP_MAX_PERIPHERALS && (millis() - scan_time) > 3000)
     {
       group->scan();
       scan_time = millis();
     }
-  }
-  if(dev_configured && (millis() - heartbeat_time) > 60000 )
-  {
-    group->publish("kick", System.deviceID());
-    heartbeat_time = millis();
   }
 }

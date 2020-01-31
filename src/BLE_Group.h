@@ -18,6 +18,7 @@ const BleUuid rxUuid("7de067f3-f3a1-4c81-a02f-98777e099f21");
 const BleUuid txUuid("4350f719-9d57-40e6-9cb5-9922e1bae48a");
 
 typedef void (*EventHandler)(const char *event_name, const char *data);
+typedef void (*ConnectionEvent)(const BlePeerDevice& peer, void* context);
 
 class BLE_Group
 {
@@ -31,6 +32,13 @@ public:
   virtual int scan();
   virtual uint8_t devices_connected();
   virtual bool isCentral() = 0;
+  void onConnect(ConnectionEvent handler, void* context);
+  void onDisconnect(ConnectionEvent handler, void* context);
+
+  ConnectionEvent _onConnectHandler;
+  void* _onConnectContext;
+  ConnectionEvent _onDisconnectHandler;
+  void* _onDisconnectContext;
 
   class Subscriber
   {
