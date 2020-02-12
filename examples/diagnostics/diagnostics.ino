@@ -115,6 +115,16 @@ void onDisconnect(const BlePeerDevice& peer, void* context)
   Particle.publish("Disconnected", peer.address().toString(), PRIVATE);
 }
 
+/*
+ * Callback to monitor RSSI of other BLE devices with our service
+ */
+void onScan(const BleScanResult& scan, void* context)
+{
+  char buf[100];
+  snprintf(buf, sizeof(buf), "Address: %s, RSSI: %d", scan.address.toString().c_str(), scan.rssi);
+  Particle.publish("Scan Result", buf, PRIVATE);
+}
+
 // setup() runs once, when the device is first turned on.
 void setup() {
   Particle.function("SetPeripheral", setAsPeripheral);
@@ -159,7 +169,7 @@ void loop() {
     // and we haven't hit the maximum number of devices yet.
     if (keep_scanning && group->devices_connected() < BLE_GROUP_MAX_PERIPHERALS && (millis() - scan_time) > 3000)
     {
-      group->scan();
+      group->scan(onScan, NULL);
       scan_time = millis();
     }
   }

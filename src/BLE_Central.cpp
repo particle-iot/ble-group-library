@@ -41,7 +41,7 @@ BLE_Group_Central::BLE_Group_Central(uint16_t groupId) : BLE_Group(groupId)
     BLE.onDisconnected(onDisconnected, this);
 }
 
-int BLE_Group_Central::scan()
+int BLE_Group_Central::scan(ScanEvent handler, void* context)
 {
     int count = BLE.scan(scanResults, SCAN_RESULT_MAX);
 
@@ -54,10 +54,14 @@ int BLE_Group_Central::scan()
         len = scanResults[ii].advertisingData.serviceUUID(&foundService, 1);
         if (len > 0 && foundService == serviceUuid)
         {
+            Log.info("Found our service with RSSI: %d", scanResults[ii].rssi);
+            if(handler != NULL)
+            {
+                handler(scanResults[ii], context);
+            }
             len = scanResults[ii].advertisingData.customData(buf, 4);
             if (len > 0 && buf[2] == _groupID)
             {
-                Log.info("Found our service with RSSI: %d", scanResults[ii].rssi);
                 bool connected = false;
                 for (size_t kk = 0; kk < BLE_GROUP_MAX_PERIPHERALS; kk++)
                 {
@@ -104,6 +108,11 @@ int BLE_Group_Central::scan()
         }
     }
     return 0;
+}
+
+int BLE_Group_Central::scan()
+{
+    return this->scan(NULL, NULL);
 }
 
 uint8_t BLE_Group_Central::devices_connected()

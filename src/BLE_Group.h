@@ -19,6 +19,7 @@ const BleUuid txUuid("4350f719-9d57-40e6-9cb5-9922e1bae48a");
 
 typedef void (*EventHandler)(const char *event_name, const char *data);
 typedef void (*ConnectionEvent)(const BlePeerDevice& peer, void* context);
+typedef void (*ScanEvent)(const BleScanResult& result, void* context);
 
 class BLE_Group
 {
@@ -30,6 +31,7 @@ public:
   virtual void subscribe(const char *event, EventHandler handler);
   virtual int publish(const char *event, const char *data) = 0;
   virtual int scan();
+  virtual int scan(ScanEvent handler, void* context) = 0;
   virtual uint8_t devices_connected();
   virtual bool isCentral() = 0;
   void onConnect(ConnectionEvent handler, void* context);
@@ -72,6 +74,7 @@ class BLE_Group_Central : public BLE_Group
 public:
   BLE_Group_Central(uint16_t groupId);
   virtual int scan();
+  virtual int scan(ScanEvent handler, void* context);
   virtual int publish(const char *event, const char *data);
   virtual uint8_t devices_connected();
   virtual bool isCentral() { return true; };
@@ -95,6 +98,7 @@ public:
   BLE_Group_Peripheral(uint16_t groupId);
   virtual int publish(const char *event, const char *data);
   virtual bool isCentral() {return false;};
+    virtual int scan(ScanEvent handler, void* context) {return -1;};
 
   bool connected;
 private:
