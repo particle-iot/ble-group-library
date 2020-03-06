@@ -29,7 +29,7 @@ static void onPeriphDisconnected(const BlePeerDevice& peer, void* context)
     BLE.advertise();
 }
 
-BLE_Group_Peripheral::BLE_Group_Peripheral(uint16_t groupId): BLE_Group(groupId)
+BLE_Group_Peripheral::BLE_Group_Peripheral(uint32_t groupId): BLE_Group(groupId)
 {
     _txCharacteristic = BleCharacteristic("tx", BleCharacteristicProperty::INDICATE,
         txUuid, serviceUuid);
@@ -42,8 +42,8 @@ BLE_Group_Peripheral::BLE_Group_Peripheral(uint16_t groupId): BLE_Group(groupId)
     BleAdvertisingData data;
     data.appendServiceUUID(serviceUuid);
 
-    uint8_t custom_data[] = { 0x62, 0x06, 0, 0 };
-    custom_data[2] = _groupID;
+    uint8_t custom_data[] = { 0x62, 0x06, 0, 0, 0, 0 };
+    memcpy(custom_data+2, &_groupID, 4);
     data.appendCustomData(custom_data, sizeof(custom_data), false);
     BLE.advertise(&data);
     BLE.onConnected(onPeriphConnected, this);

@@ -36,7 +36,7 @@ static void onDataReceived(const uint8_t *data, size_t len, const BlePeerDevice&
     }
 }
 
-BLE_Group_Central::BLE_Group_Central(uint16_t groupId) : BLE_Group(groupId)
+BLE_Group_Central::BLE_Group_Central(uint32_t groupId) : BLE_Group(groupId)
 {
     BLE.onDisconnected(onDisconnected, this);
 }
@@ -48,7 +48,7 @@ int BLE_Group_Central::scan(ScanEvent handler, void* context)
     for (int ii = 0; ii < count; ii++)
     {
         BleUuid foundService;
-        uint8_t buf[4];
+        uint8_t buf[6];
         size_t len;
 
         len = scanResults[ii].advertisingData.serviceUUID(&foundService, 1);
@@ -59,8 +59,8 @@ int BLE_Group_Central::scan(ScanEvent handler, void* context)
             {
                 handler(scanResults[ii], context);
             }
-            len = scanResults[ii].advertisingData.customData(buf, 4);
-            if (len > 0 && buf[2] == _groupID)
+            len = scanResults[ii].advertisingData.customData(buf, 6);
+            if (len > 0 && memcmp(buf+2, &_groupID, 4) == 0)
             {
                 bool connected = false;
                 for (size_t kk = 0; kk < BLE_GROUP_MAX_PERIPHERALS; kk++)
@@ -103,7 +103,7 @@ int BLE_Group_Central::scan(ScanEvent handler, void* context)
             }
             else
             {
-                Log.info("Found a device but has another Group ID: %x", buf[2]);
+                Log.info("Found a device but has another Group ID: %lu, our ID: %lu", *(uint32_t *)(buf+2), _groupID);
             }
         }
     }

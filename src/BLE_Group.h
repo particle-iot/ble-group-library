@@ -24,7 +24,7 @@ typedef void (*ScanEvent)(const BleScanResult& result, void* context);
 class BLE_Group
 {
 public:
-  BLE_Group(uint16_t groupID);
+  BLE_Group(uint32_t groupID);
   ~BLE_Group();
 
   void receive(const char *data, size_t len);
@@ -65,14 +65,14 @@ public:
   };
 
 protected:
-  uint16_t _groupID;
+  uint32_t _groupID;
   std::deque<Subscriber> _sub_q;
 };
 
 class BLE_Group_Central : public BLE_Group
 {
 public:
-  BLE_Group_Central(uint16_t groupId);
+  BLE_Group_Central(uint32_t groupId);
   virtual int scan();
   virtual int scan(ScanEvent handler, void* context);
   virtual int publish(const char *event, const char *data);
@@ -95,7 +95,7 @@ public:
 class BLE_Group_Peripheral : public BLE_Group
 {
 public:
-  BLE_Group_Peripheral(uint16_t groupId);
+  BLE_Group_Peripheral(uint32_t groupId);
   virtual int publish(const char *event, const char *data);
   virtual bool isCentral() {return false;};
     virtual int scan(ScanEvent handler, void* context) {return -1;};

@@ -2,7 +2,7 @@
 #include "string.h"
 
 
-BLE_Group::BLE_Group(uint16_t groupID)
+BLE_Group::BLE_Group(uint32_t groupID)
 {
     _groupID = groupID;
 }

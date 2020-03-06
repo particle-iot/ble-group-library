@@ -23,7 +23,7 @@ BLE_Group *group;
 int eeprom_address = 0;
 struct bleConfig {
   uint8_t is_central;
-  uint16_t group_number;
+  uint32_t group_number;
 };
 
 bool dev_configured;
@@ -35,7 +35,7 @@ unsigned long heartbeat_time, scan_time;
 // It is applied at the next reboot.
 int setAsPeripheral(String extra)
 {
-  bleConfig myConfig = { 0, (uint16_t)std::atoi(extra)};
+  bleConfig myConfig = { 0, (uint32_t)std::atoi(extra)};
   EEPROM.put(eeprom_address, myConfig);
   return 0;
 }
@@ -44,7 +44,7 @@ int setAsPeripheral(String extra)
 // It is applied at the next reboot
 int setAsCentral(String extra)
 {
-  bleConfig myConfig = { 1, (uint16_t)std::atoi(extra)};
+  bleConfig myConfig = { 1, (uint32_t)std::atoi(extra)};
   EEPROM.put(eeprom_address, myConfig);
   return 0;
 }
