@@ -51,37 +51,52 @@ int BLE_Group_Central::scan(ScanEvent handler, void* context)
         uint8_t buf[6];
         size_t len;
 
+#if defined(SYSTEM_VERSION_v300ALPHA1) && (SYSTEM_VERSION >= SYSTEM_VERSION_v300ALPHA1)
+        len = scanResults[ii].advertisingData().serviceUUID(&foundService, 1);
+#else
         len = scanResults[ii].advertisingData.serviceUUID(&foundService, 1);
+#endif
         if (len > 0 && foundService == serviceUuid)
         {
+#if defined(SYSTEM_VERSION_v300ALPHA1) && (SYSTEM_VERSION >= SYSTEM_VERSION_v300ALPHA1)
+            Log.info("Found our service with RSSI: %d", scanResults[ii].rssi());
+#else
             Log.info("Found our service with RSSI: %d", scanResults[ii].rssi);
+#endif
             if(handler != NULL)
             {
                 handler(scanResults[ii], context);
             }
+#if defined(SYSTEM_VERSION_v300ALPHA1) && (SYSTEM_VERSION >= SYSTEM_VERSION_v300ALPHA1)
+            len = scanResults[ii].advertisingData().customData(buf, 6);
+#else
             len = scanResults[ii].advertisingData.customData(buf, 6);
+#endif
             if (len > 0 && memcmp(buf+2, &_groupID, 4) == 0)
             {
                 bool connected = false;
                 for (size_t kk = 0; kk < BLE_GROUP_MAX_PERIPHERALS; kk++)
                 {
+#if defined(SYSTEM_VERSION_v300ALPHA1) && (SYSTEM_VERSION >= SYSTEM_VERSION_v300ALPHA1)
+                    if (peripherals[kk].in_use && peripherals[kk].peer.address() == scanResults[ii].address())
+#else
                     if (peripherals[kk].in_use && peripherals[kk].peer.address() == scanResults[ii].address)
+#endif
                     {
                         connected = true;
                         break;
                     }
                     if (!connected)
                     {
-                        Log.info("rssi=%d address=%02X:%02X:%02X:%02X:%02X:%02X ",
-                                 scanResults[ii].rssi,
-                                 scanResults[ii].address[0], scanResults[ii].address[1], scanResults[ii].address[2],
-                                 scanResults[ii].address[3], scanResults[ii].address[4], scanResults[ii].address[5]);
-
                         for (size_t hh = 0; hh < BLE_GROUP_MAX_PERIPHERALS; hh++)
                         {
                             if (!peripherals[hh].in_use)
                             {
+#if defined(SYSTEM_VERSION_v300ALPHA1) && (SYSTEM_VERSION >= SYSTEM_VERSION_v300ALPHA1)
+                                peripherals[hh].peer = BLE.connect(scanResults[ii].address());
+#else
                                 peripherals[hh].peer = BLE.connect(scanResults[ii].address);
+#endif
                                 if (peripherals[hh].peer.connected())
                                 {
                                     Log.info("successfully connected!");

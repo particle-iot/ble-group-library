@@ -121,7 +121,11 @@ void onDisconnect(const BlePeerDevice& peer, void* context)
 void onScan(const BleScanResult& scan, void* context)
 {
   char buf[100];
+#if defined(SYSTEM_VERSION_v300ALPHA1) && (SYSTEM_VERSION >= SYSTEM_VERSION_v300ALPHA1)
+  snprintf(buf, sizeof(buf), "Address: %s, RSSI: %d", scan.address().toString().c_str(), scan.rssi());
+#else
   snprintf(buf, sizeof(buf), "Address: %s, RSSI: %d", scan.address.toString().c_str(), scan.rssi);
+#endif
   Particle.publish("Scan Result", buf, PRIVATE);
 }
 
