@@ -27,7 +27,18 @@ void setup() {
 }
 
 void loop() {
-  group->publish("test-central", "Some data");
+  static uint32_t scan_time = millis();
+  static uint32_t publish_time = millis();
+  // Scan when the number of connected devices is less than the max
+  if (group->devices_connected() < BLE_GROUP_MAX_PERIPHERALS && (millis() - scan_time) > 3000) {
+    group->scan();
+    scan_time = millis();
+  }
+  // Publish every 10 seconds
+  if (group->devices_connected() > 0 && (millis() - publish_time) > 10000) { 
+    group->publish("test-central", "Some data");
+    publish_time = millis();
+  } 
 }
 ```
 
@@ -48,7 +59,11 @@ void setup() {
 }
 
 void loop() {
-  group->publish("test-periph", "Some Data");
+  static uint32_t publish_time = millis();
+  if ((millis() - publish_time) > 10000) { 
+    group->publish("test-periph", "Some Data");
+    publish_time = millis();
+  } 
 }
 ```
 
