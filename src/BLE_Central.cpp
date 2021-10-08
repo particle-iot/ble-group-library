@@ -16,7 +16,7 @@ static void onDisconnected(const BlePeerDevice &peer, void *context)
             ctx->peripherals[idx].in_use = false;
         }
     }
-    if (ctx->_onDisconnectHandler != NULL)
+    if (ctx->_onDisconnectHandler != nullptr)
     {
         ctx->_onDisconnectHandler(peer, ctx->_onDisconnectContext);
     }
@@ -100,7 +100,7 @@ int BLE_Group_Central::scan(ScanEvent handler, void* context)
                                 if (peripherals[hh].peer.connected())
                                 {
                                     Log.info("successfully connected!");
-                                    if (_onConnectHandler != NULL)
+                                    if (_onConnectHandler != nullptr)
                                     {
                                         _onConnectHandler(peripherals[hh].peer, _onConnectContext);
                                     }

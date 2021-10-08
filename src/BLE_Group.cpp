@@ -5,6 +5,8 @@
 BLE_Group::BLE_Group(uint32_t groupID)
 {
     _groupID = groupID;
+    _onConnectHandler = nullptr;
+    _onDisconnectHandler = nullptr;
 }
 
 void BLE_Group::subscribe(const char *event, EventHandler handler)
